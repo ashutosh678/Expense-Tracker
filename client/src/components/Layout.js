@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import {
 	AppBar,
 	Box,
@@ -12,33 +11,33 @@ import {
 	ListItemText,
 	Toolbar,
 	Typography,
+	Avatar,
+	Divider,
 	useTheme,
-	useMediaQuery,
-	Button,
 } from "@mui/material";
 import {
 	Menu as MenuIcon,
-	Dashboard as DashboardIcon,
-	Add as AddIcon,
-	List as ListIcon,
-	Logout as LogoutIcon,
+	Dashboard,
+	Receipt,
+	Add,
+	Logout,
 } from "@mui/icons-material";
+import { useNavigate, useLocation, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 const drawerWidth = 240;
 
 const Layout = () => {
-	const [mobileOpen, setMobileOpen] = useState(false);
 	const theme = useTheme();
-	const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
 	const navigate = useNavigate();
 	const location = useLocation();
-	const { logout } = useAuth();
+	const { logout, user } = useAuth();
+	const [mobileOpen, setMobileOpen] = useState(false);
 
 	const menuItems = [
-		{ text: "Dashboard", icon: <DashboardIcon />, path: "/dashboard" },
-		{ text: "Add Expense", icon: <AddIcon />, path: "/add-expense" },
-		{ text: "Expenses", icon: <ListIcon />, path: "/expenses" },
+		{ text: "Dashboard", icon: <Dashboard />, path: "/dashboard" },
+		{ text: "Expenses", icon: <Receipt />, path: "/expenses" },
+		{ text: "Add Expense", icon: <Add />, path: "/add-expense" },
 	];
 
 	const handleDrawerToggle = () => {
@@ -47,57 +46,91 @@ const Layout = () => {
 
 	const handleLogout = async () => {
 		await logout();
+		navigate("/login");
 	};
 
 	const drawer = (
-		<div>
-			<Toolbar />
+		<Box sx={{ height: "100%" }}>
+			<Box
+				sx={{
+					p: 2,
+					background: `linear-gradient(145deg, ${theme.palette.primary.main}, ${theme.palette.primary.dark})`,
+					color: "white",
+				}}
+			>
+				<Typography variant="h6" sx={{ fontWeight: 600 }}>
+					Expense Tracker
+				</Typography>
+			</Box>
+			<Divider />
 			<List>
 				{menuItems.map((item) => (
 					<ListItem
 						key={item.text}
-						disablePadding
-						selected={location.pathname === item.path}
-					>
-						<Button
-							fullWidth
-							startIcon={item.icon}
-							onClick={() => navigate(item.path)}
-							sx={{
-								justifyContent: "flex-start",
-								padding: "12px 16px",
-								color:
-									location.pathname === item.path
-										? "primary.main"
-										: "text.primary",
-								"&:hover": {
-									backgroundColor: "action.hover",
-								},
-							}}
-						>
-							{item.text}
-						</Button>
-					</ListItem>
-				))}
-				<ListItem disablePadding>
-					<Button
-						fullWidth
-						startIcon={<LogoutIcon />}
-						onClick={handleLogout}
+						onClick={() => navigate(item.path)}
 						sx={{
-							justifyContent: "flex-start",
-							padding: "12px 16px",
-							color: "text.primary",
+							mb: 1,
+							borderRadius: 1,
+							mx: 1,
+							backgroundColor:
+								location.pathname === item.path
+									? "rgba(37, 99, 235, 0.08)"
+									: "transparent",
 							"&:hover": {
-								backgroundColor: "action.hover",
+								backgroundColor: "rgba(37, 99, 235, 0.12)",
 							},
 						}}
 					>
-						Logout
-					</Button>
+						<ListItemIcon
+							sx={{
+								color:
+									location.pathname === item.path
+										? theme.palette.primary.main
+										: theme.palette.text.secondary,
+								minWidth: 40,
+							}}
+						>
+							{item.icon}
+						</ListItemIcon>
+						<ListItemText
+							primary={item.text}
+							sx={{
+								"& .MuiListItemText-primary": {
+									fontWeight: location.pathname === item.path ? 600 : 400,
+									color:
+										location.pathname === item.path
+											? theme.palette.primary.main
+											: theme.palette.text.primary,
+								},
+							}}
+						/>
+					</ListItem>
+				))}
+				<ListItem
+					onClick={handleLogout}
+					sx={{
+						mb: 1,
+						borderRadius: 1,
+						mx: 1,
+						"&:hover": {
+							backgroundColor: "rgba(239, 68, 68, 0.08)",
+						},
+					}}
+				>
+					<ListItemIcon sx={{ color: theme.palette.error.main, minWidth: 40 }}>
+						<Logout />
+					</ListItemIcon>
+					<ListItemText
+						primary="Logout"
+						sx={{
+							"& .MuiListItemText-primary": {
+								color: theme.palette.error.main,
+							},
+						}}
+					/>
 				</ListItem>
 			</List>
-		</div>
+		</Box>
 	);
 
 	return (
@@ -107,23 +140,33 @@ const Layout = () => {
 				position="fixed"
 				sx={{
 					width: { sm: `calc(100% - ${drawerWidth}px)` },
-					ml: { sm: drawerWidth },
-					bgcolor: "primary.main",
+					ml: { sm: `${drawerWidth}px` },
+					bgcolor: "background.paper",
+					color: "text.primary",
+					boxShadow: "none",
+					borderBottom: 1,
+					borderColor: "divider",
 				}}
 			>
 				<Toolbar>
 					<IconButton
 						color="inherit"
-						aria-label="open drawer"
 						edge="start"
 						onClick={handleDrawerToggle}
 						sx={{ mr: 2, display: { sm: "none" } }}
 					>
 						<MenuIcon />
 					</IconButton>
-					<Typography variant="h6" noWrap component="div">
-						Expense Tracker
-					</Typography>
+					<Box sx={{ flexGrow: 1 }} />
+					<Avatar
+						sx={{
+							bgcolor: theme.palette.primary.main,
+							width: 35,
+							height: 35,
+						}}
+					>
+						{user?.name?.[0]?.toUpperCase()}
+					</Avatar>
 				</Toolbar>
 			</AppBar>
 			<Box
@@ -131,19 +174,32 @@ const Layout = () => {
 				sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
 			>
 				<Drawer
-					variant={isMobile ? "temporary" : "permanent"}
-					open={isMobile ? mobileOpen : true}
+					variant="temporary"
+					open={mobileOpen}
 					onClose={handleDrawerToggle}
-					ModalProps={{
-						keepMounted: true,
-					}}
+					ModalProps={{ keepMounted: true }}
 					sx={{
+						display: { xs: "block", sm: "none" },
 						"& .MuiDrawer-paper": {
 							boxSizing: "border-box",
 							width: drawerWidth,
-							borderRight: "1px solid rgba(0, 0, 0, 0.12)",
 						},
 					}}
+				>
+					{drawer}
+				</Drawer>
+				<Drawer
+					variant="permanent"
+					sx={{
+						display: { xs: "none", sm: "block" },
+						"& .MuiDrawer-paper": {
+							boxSizing: "border-box",
+							width: drawerWidth,
+							borderRight: 1,
+							borderColor: "divider",
+						},
+					}}
+					open
 				>
 					{drawer}
 				</Drawer>
