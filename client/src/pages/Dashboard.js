@@ -22,6 +22,7 @@ import {
 	Cell,
 	Tooltip as ChartTooltip,
 	ResponsiveContainer,
+	Legend,
 } from "recharts";
 import { useExpense } from "../context/ExpenseContext";
 import ExpenseTrends from "../components/ExpenseTrends";
@@ -135,7 +136,7 @@ const Dashboard = () => {
 				<Card
 					sx={{
 						flex: 1,
-						minWidth: 0, // This prevents flex items from overflowing
+						minWidth: 0,
 						"&:hover": {
 							boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
 						},
@@ -172,10 +173,74 @@ const Dashboard = () => {
 								<MoreVert />
 							</IconButton>
 						</Box>
-						<Box sx={{ display: "flex", alignItems: "center" }}>
+
+						{/* Additional Stats */}
+						<Box sx={{ mt: 2 }}>
+							{/* Highest Expense */}
+							<Box sx={{ mb: 2 }}>
+								<Typography variant="body2" color="text.secondary" gutterBottom>
+									Highest Expense
+								</Typography>
+								<Box
+									sx={{
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "space-between",
+									}}
+								>
+									<Typography variant="body2">
+										{expenses.length > 0
+											? expenses.reduce((max, exp) =>
+													exp.amount > max.amount ? exp : max
+											  ).category
+											: "N/A"}
+									</Typography>
+									<Typography variant="body2" sx={{ fontWeight: 600 }}>
+										$
+										{expenses.length > 0
+											? expenses
+													.reduce((max, exp) =>
+														exp.amount > max.amount ? exp : max
+													)
+													.amount.toFixed(2)
+											: "0.00"}
+									</Typography>
+								</Box>
+							</Box>
+
+							{/* Recent Activity */}
+							<Box>
+								<Typography variant="body2" color="text.secondary" gutterBottom>
+									Recent Activity
+								</Typography>
+								{expenses.slice(0, 2).map((expense, index) => (
+									<Box
+										key={index}
+										sx={{
+											display: "flex",
+											alignItems: "center",
+											justifyContent: "space-between",
+											mb: 1,
+										}}
+									>
+										<Typography variant="body2" noWrap sx={{ maxWidth: "60%" }}>
+											{expense.category}
+										</Typography>
+										<Typography
+											variant="body2"
+											sx={{ color: "text.secondary" }}
+										>
+											${expense.amount.toFixed(2)}
+										</Typography>
+									</Box>
+								))}
+							</Box>
+						</Box>
+
+						<Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
 							<TrendingUp sx={{ color: theme.palette.success.main, mr: 1 }} />
 							<Typography variant="body2" color="success.main">
-								12%
+								12% increase from last month
 							</Typography>
 						</Box>
 					</CardContent>
@@ -225,10 +290,67 @@ const Dashboard = () => {
 								<MoreVert />
 							</IconButton>
 						</Box>
-						<Box sx={{ display: "flex", alignItems: "center" }}>
+
+						{/* Monthly Breakdown */}
+						<Box sx={{ mt: 2 }}>
+							{/* Month-over-Month Comparison */}
+							<Box sx={{ mb: 2 }}>
+								<Typography variant="body2" color="text.secondary" gutterBottom>
+									Month-over-Month
+								</Typography>
+								{Object.entries(monthlyExpenses)
+									.slice(-2)
+									.map(([month, amount], index) => (
+										<Box
+											key={month}
+											sx={{
+												display: "flex",
+												alignItems: "center",
+												justifyContent: "space-between",
+												mb: 1,
+											}}
+										>
+											<Typography variant="body2">{month}</Typography>
+											<Typography
+												variant="body2"
+												sx={{ color: "text.secondary" }}
+											>
+												${amount.toFixed(2)}
+											</Typography>
+										</Box>
+									))}
+							</Box>
+
+							{/* Statistics */}
+							<Box>
+								<Typography variant="body2" color="text.secondary" gutterBottom>
+									Statistics
+								</Typography>
+								<Box
+									sx={{
+										display: "flex",
+										justifyContent: "space-between",
+										mb: 1,
+									}}
+								>
+									<Typography variant="body2">Highest Month</Typography>
+									<Typography variant="body2" sx={{ fontWeight: 500 }}>
+										${Math.max(...Object.values(monthlyExpenses)).toFixed(2)}
+									</Typography>
+								</Box>
+								<Box sx={{ display: "flex", justifyContent: "space-between" }}>
+									<Typography variant="body2">Lowest Month</Typography>
+									<Typography variant="body2" sx={{ fontWeight: 500 }}>
+										${Math.min(...Object.values(monthlyExpenses)).toFixed(2)}
+									</Typography>
+								</Box>
+							</Box>
+						</Box>
+
+						<Box sx={{ display: "flex", alignItems: "center", mt: 2 }}>
 							<TrendingDown sx={{ color: theme.palette.error.main, mr: 1 }} />
 							<Typography variant="body2" color="error.main">
-								5%
+								5% decrease from previous average
 							</Typography>
 						</Box>
 					</CardContent>
@@ -250,28 +372,108 @@ const Dashboard = () => {
 						<Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
 							Category Distribution
 						</Typography>
-						<Box sx={{ height: 300 }}>
-							<ResponsiveContainer width="100%" height="100%">
-								<PieChart>
-									<Pie
-										data={pieData}
-										cx="50%"
-										cy="50%"
-										innerRadius={60}
-										outerRadius={80}
-										paddingAngle={5}
-										dataKey="value"
+						<Box
+							sx={{ display: "flex", flexDirection: "column", height: "100%" }}
+						>
+							<Box sx={{ height: 300, mb: 2 }}>
+								<ResponsiveContainer width="100%" height="100%">
+									<PieChart>
+										<Pie
+											data={pieData}
+											cx="50%"
+											cy="50%"
+											innerRadius={60}
+											outerRadius={80}
+											paddingAngle={5}
+											dataKey="value"
+										>
+											{pieData.map((entry, index) => (
+												<Cell
+													key={`cell-${index}`}
+													fill={COLORS[index % COLORS.length]}
+												/>
+											))}
+										</Pie>
+										<Legend
+											verticalAlign="bottom"
+											height={36}
+											formatter={(value) => value}
+										/>
+										<ChartTooltip />
+									</PieChart>
+								</ResponsiveContainer>
+							</Box>
+
+							{/* Category Breakdown */}
+							<Box sx={{ mt: "auto" }}>
+								<Typography
+									variant="subtitle2"
+									sx={{ mb: 1, color: "text.secondary" }}
+								>
+									Category Breakdown
+								</Typography>
+								{pieData.map((entry, index) => (
+									<Box
+										key={entry.name}
+										sx={{
+											display: "flex",
+											alignItems: "center",
+											justifyContent: "space-between",
+											mb: 1,
+										}}
 									>
-										{pieData.map((entry, index) => (
-											<Cell
-												key={`cell-${index}`}
-												fill={COLORS[index % COLORS.length]}
+										<Box sx={{ display: "flex", alignItems: "center" }}>
+											<Box
+												sx={{
+													width: 8,
+													height: 8,
+													borderRadius: "50%",
+													bgcolor: COLORS[index % COLORS.length],
+													mr: 1,
+												}}
 											/>
-										))}
-									</Pie>
-									<ChartTooltip />
-								</PieChart>
-							</ResponsiveContainer>
+											<Typography variant="body2">{entry.name}</Typography>
+										</Box>
+										<Box sx={{ display: "flex", alignItems: "center", gap: 2 }}>
+											<Typography
+												variant="body2"
+												sx={{ color: "text.secondary" }}
+											>
+												${entry.value.toFixed(2)}
+											</Typography>
+											<Typography
+												variant="body2"
+												sx={{
+													color: "text.secondary",
+													bgcolor: "action.hover",
+													px: 1,
+													borderRadius: 1,
+												}}
+											>
+												{((entry.value / totalExpenses) * 100).toFixed(1)}%
+											</Typography>
+										</Box>
+									</Box>
+								))}
+
+								{/* Total */}
+								<Box
+									sx={{
+										display: "flex",
+										alignItems: "center",
+										justifyContent: "space-between",
+										mt: 1,
+										pt: 1,
+										borderTop: 1,
+										borderColor: "divider",
+									}}
+								>
+									<Typography variant="subtitle2">Total</Typography>
+									<Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+										${totalExpenses.toFixed(2)}
+									</Typography>
+								</Box>
+							</Box>
 						</Box>
 					</CardContent>
 				</Card>
