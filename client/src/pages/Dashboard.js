@@ -7,8 +7,7 @@ import {
 	Typography,
 	useTheme,
 	IconButton,
-	Tooltip,
-	LinearProgress,
+	Divider,
 } from "@mui/material";
 import {
 	MoreVert,
@@ -18,18 +17,14 @@ import {
 	Receipt,
 } from "@mui/icons-material";
 import {
-	AreaChart,
-	Area,
-	XAxis,
-	YAxis,
-	CartesianGrid,
-	Tooltip as ChartTooltip,
-	ResponsiveContainer,
 	PieChart,
 	Pie,
 	Cell,
+	Tooltip as ChartTooltip,
+	ResponsiveContainer,
 } from "recharts";
 import { useExpense } from "../context/ExpenseContext";
+import ExpenseTrends from "../components/ExpenseTrends";
 
 const Dashboard = () => {
 	const theme = useTheme();
@@ -48,13 +43,6 @@ const Dashboard = () => {
 		acc[month] = (acc[month] || 0) + expense.amount;
 		return acc;
 	}, {});
-
-	const monthlyData = Object.entries(monthlyExpenses).map(
-		([month, amount]) => ({
-			month,
-			amount,
-		})
-	);
 
 	// Calculate category distribution
 	const categoryExpenses = expenses.reduce((acc, expense) => {
@@ -76,7 +64,16 @@ const Dashboard = () => {
 	];
 
 	const StatCard = ({ title, value, icon, color, trend, percentage }) => (
-		<Card sx={{ height: "100%" }}>
+		<Card
+			sx={{
+				height: "100%",
+				"&:hover": {
+					boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+				},
+				transition: "box-shadow 0.3s ease-in-out",
+				borderRadius: 2,
+			}}
+		>
 			<CardContent>
 				<Box sx={{ display: "flex", alignItems: "center", mb: 2 }}>
 					<Box
@@ -122,113 +119,173 @@ const Dashboard = () => {
 	return (
 		<Box>
 			<Typography variant="h4" sx={{ mb: 4, fontWeight: "600" }}>
-				Dashboard
+				Dashboard Overview
 			</Typography>
 
-			<Grid container spacing={3}>
-				{/* Stats Cards */}
-				<Grid item xs={12} sm={6} md={3}>
-					<StatCard
-						title="Total Expenses"
-						value={totalExpenses}
-						icon={<AccountBalance />}
-						color={theme.palette.primary.main}
-						trend="up"
-						percentage={12}
-					/>
-				</Grid>
-				<Grid item xs={12} sm={6} md={3}>
-					<StatCard
-						title="Monthly Average"
-						value={totalExpenses / (monthlyData.length || 1)}
-						icon={<Receipt />}
-						color={theme.palette.secondary.main}
-						trend="down"
-						percentage={5}
-					/>
-				</Grid>
-
-				{/* Charts */}
-				<Grid item xs={12} md={8}>
-					<Card sx={{ height: "100%" }}>
-						<CardContent>
-							<Typography variant="h6" sx={{ mb: 2 }}>
-								Expense Trends
-							</Typography>
-							<Box sx={{ height: 300 }}>
-								<ResponsiveContainer width="100%" height="100%">
-									<AreaChart data={monthlyData}>
-										<defs>
-											<linearGradient
-												id="colorAmount"
-												x1="0"
-												y1="0"
-												x2="0"
-												y2="1"
-											>
-												<stop
-													offset="5%"
-													stopColor={theme.palette.primary.main}
-													stopOpacity={0.8}
-												/>
-												<stop
-													offset="95%"
-													stopColor={theme.palette.primary.main}
-													stopOpacity={0}
-												/>
-											</linearGradient>
-										</defs>
-										<CartesianGrid strokeDasharray="3 3" />
-										<XAxis dataKey="month" />
-										<YAxis />
-										<ChartTooltip />
-										<Area
-											type="monotone"
-											dataKey="amount"
-											stroke={theme.palette.primary.main}
-											fillOpacity={1}
-											fill="url(#colorAmount)"
-										/>
-									</AreaChart>
-								</ResponsiveContainer>
+			<Box
+				sx={{
+					display: "flex",
+					alignItems: "stretch",
+					mb: 3,
+					minHeight: "450px",
+					gap: 3,
+				}}
+			>
+				{/* First Card - Total Expenses */}
+				<Card
+					sx={{
+						flex: 1,
+						minWidth: 0, // This prevents flex items from overflowing
+						"&:hover": {
+							boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+						},
+						transition: "box-shadow 0.3s ease-in-out",
+						borderRadius: 2,
+					}}
+				>
+					<CardContent>
+						<Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+							<Box
+								sx={{
+									p: 1.5,
+									borderRadius: 2,
+									bgcolor: theme.palette.primary.main + "15",
+									color: theme.palette.primary.main,
+									mr: 2,
+								}}
+							>
+								<AccountBalance fontSize="large" />
 							</Box>
-						</CardContent>
-					</Card>
-				</Grid>
-
-				<Grid item xs={12} md={4}>
-					<Card sx={{ height: "100%" }}>
-						<CardContent>
-							<Typography variant="h6" sx={{ mb: 2 }}>
-								Category Distribution
-							</Typography>
-							<Box sx={{ height: 300 }}>
-								<ResponsiveContainer width="100%" height="100%">
-									<PieChart>
-										<Pie
-											data={pieData}
-											cx="50%"
-											cy="50%"
-											innerRadius={60}
-											outerRadius={80}
-											paddingAngle={5}
-											dataKey="value"
-										>
-											{pieData.map((entry, index) => (
-												<Cell
-													key={`cell-${index}`}
-													fill={COLORS[index % COLORS.length]}
-												/>
-											))}
-										</Pie>
-										<ChartTooltip />
-									</PieChart>
-								</ResponsiveContainer>
+							<Box sx={{ flexGrow: 1 }}>
+								<Typography variant="body2" color="text.secondary">
+									Total Expenses
+								</Typography>
+								<Typography
+									variant="h4"
+									component="div"
+									sx={{ fontWeight: "600" }}
+								>
+									${totalExpenses.toLocaleString()}
+								</Typography>
 							</Box>
-						</CardContent>
-					</Card>
-				</Grid>
-			</Grid>
+							<IconButton size="small">
+								<MoreVert />
+							</IconButton>
+						</Box>
+						<Box sx={{ display: "flex", alignItems: "center" }}>
+							<TrendingUp sx={{ color: theme.palette.success.main, mr: 1 }} />
+							<Typography variant="body2" color="success.main">
+								12%
+							</Typography>
+						</Box>
+					</CardContent>
+				</Card>
+
+				{/* Second Card - Monthly Average */}
+				<Card
+					sx={{
+						flex: 1,
+						minWidth: 0,
+						"&:hover": {
+							boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+						},
+						transition: "box-shadow 0.3s ease-in-out",
+						borderRadius: 2,
+					}}
+				>
+					<CardContent>
+						<Box sx={{ display: "flex", alignItems: "center", mb: 3 }}>
+							<Box
+								sx={{
+									p: 1.5,
+									borderRadius: 2,
+									bgcolor: theme.palette.secondary.main + "15",
+									color: theme.palette.secondary.main,
+									mr: 2,
+								}}
+							>
+								<Receipt fontSize="large" />
+							</Box>
+							<Box sx={{ flexGrow: 1 }}>
+								<Typography variant="body2" color="text.secondary">
+									Monthly Average
+								</Typography>
+								<Typography
+									variant="h4"
+									component="div"
+									sx={{ fontWeight: "600" }}
+								>
+									$
+									{(
+										totalExpenses / (Object.keys(monthlyExpenses).length || 1)
+									).toLocaleString()}
+								</Typography>
+							</Box>
+							<IconButton size="small">
+								<MoreVert />
+							</IconButton>
+						</Box>
+						<Box sx={{ display: "flex", alignItems: "center" }}>
+							<TrendingDown sx={{ color: theme.palette.error.main, mr: 1 }} />
+							<Typography variant="body2" color="error.main">
+								5%
+							</Typography>
+						</Box>
+					</CardContent>
+				</Card>
+
+				{/* Third Card - Category Distribution */}
+				<Card
+					sx={{
+						flex: 1,
+						minWidth: 0,
+						"&:hover": {
+							boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
+						},
+						transition: "box-shadow 0.3s ease-in-out",
+						borderRadius: 2,
+					}}
+				>
+					<CardContent>
+						<Typography variant="h6" sx={{ mb: 3, fontWeight: 600 }}>
+							Category Distribution
+						</Typography>
+						<Box sx={{ height: 300 }}>
+							<ResponsiveContainer width="100%" height="100%">
+								<PieChart>
+									<Pie
+										data={pieData}
+										cx="50%"
+										cy="50%"
+										innerRadius={60}
+										outerRadius={80}
+										paddingAngle={5}
+										dataKey="value"
+									>
+										{pieData.map((entry, index) => (
+											<Cell
+												key={`cell-${index}`}
+												fill={COLORS[index % COLORS.length]}
+											/>
+										))}
+									</Pie>
+									<ChartTooltip />
+								</PieChart>
+							</ResponsiveContainer>
+						</Box>
+					</CardContent>
+				</Card>
+			</Box>
+
+			<Divider sx={{ my: 4 }} />
+
+			{/* Expense Trends Section */}
+			<Box>
+				<Typography variant="h4" sx={{ mb: 4, fontWeight: "600" }}>
+					Expense Analysis
+				</Typography>
+				<ExpenseTrends />
+			</Box>
 		</Box>
 	);
 };
