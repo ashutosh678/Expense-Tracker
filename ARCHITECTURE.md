@@ -196,17 +196,6 @@ sequenceDiagram
 - Response caching
 - Pagination
 
-## Deployment Architecture
-
-### Production Setup
-
-```
-┌─────────────────┐     ┌──────────────┐     ┌─────────────┐
-│    Netlify      │ ←→  │    Heroku    │ ←→  │  MongoDB    │
-│  (Frontend)     │     │  (Backend)   │     │   Atlas     │
-└─────────────────┘     └──────────────┘     └─────────────┘
-```
-
 ## Future Scalability Considerations
 
 1. Microservices Architecture
